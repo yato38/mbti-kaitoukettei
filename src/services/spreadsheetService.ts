@@ -1,8 +1,7 @@
 import { DiagnosisResult } from '../types';
 
-// Google Sheets API設定
-const SPREADSHEET_ID = import.meta.env.VITE_SPREADSHEET_ID || '';
-const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
+// Google Apps Script Web App URL設定
+const GOOGLE_APPS_SCRIPT_URL = import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL || '';
 
 interface SpreadsheetRow {
   timestamp: string;
@@ -22,12 +21,10 @@ interface SpreadsheetRow {
 
 export class SpreadsheetService {
   private static instance: SpreadsheetService;
-  private spreadsheetId: string;
-  private apiKey: string;
+  private appsScriptUrl: string;
 
   private constructor() {
-    this.spreadsheetId = SPREADSHEET_ID;
-    this.apiKey = GOOGLE_API_KEY;
+    this.appsScriptUrl = GOOGLE_APPS_SCRIPT_URL;
   }
 
   public static getInstance(): SpreadsheetService {
@@ -42,8 +39,8 @@ export class SpreadsheetService {
    */
   public async sendResult(result: DiagnosisResult): Promise<boolean> {
     try {
-      if (!this.spreadsheetId || !this.apiKey) {
-        throw new Error('スプレッドシートIDまたはAPIキーが設定されていません');
+      if (!this.appsScriptUrl) {
+        throw new Error('Google Apps Script URLが設定されていません');
       }
 
       const rowData = this.convertResultToRow(result);
@@ -83,40 +80,37 @@ export class SpreadsheetService {
   }
 
   /**
-   * Google Sheets APIを使用して行を追加
+   * Google Apps Scriptを使用して行を追加
    */
   private async appendRow(rowData: SpreadsheetRow): Promise<boolean> {
     try {
       const values = [
-        [
-          rowData.timestamp,
-          rowData.id,
-          rowData.name,
-          rowData.team,
-          rowData.leaderPercentage,
-          rowData.playerPercentage,
-          rowData.personaA,
-          rowData.personaB,
-          rowData.personaC,
-          rowData.personaD,
-          rowData.personaE,
-          rowData.personaF,
-          rowData.completedAt,
-        ]
+        rowData.timestamp,
+        rowData.id,
+        rowData.name,
+        rowData.team,
+        rowData.leaderPercentage,
+        rowData.playerPercentage,
+        rowData.personaA,
+        rowData.personaB,
+        rowData.personaC,
+        rowData.personaD,
+        rowData.personaE,
+        rowData.personaF,
+        rowData.completedAt,
       ];
 
-      console.log('スプレッドシートID:', this.spreadsheetId);
+      console.log('Google Apps Script URL:', this.appsScriptUrl);
       console.log('送信データ:', values);
 
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/Sheet1!A:M:append?valueInputOption=USER_ENTERED&key=${this.apiKey}`;
-
-      const response = await fetch(url, {
+      const response = await fetch(this.appsScriptUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          values: values,
+          action: 'appendRow',
+          data: values,
         }),
       });
 
@@ -131,20 +125,25 @@ export class SpreadsheetService {
 
       const data = await response.json();
       console.log('API Success response:', data);
-      return true;
+      
+      if (data.success) {
+        return true;
+      } else {
+        throw new Error(data.error || 'データの送信に失敗しました');
+      }
     } catch (error) {
-      console.error('Google Sheets API エラー:', error);
+      console.error('Google Apps Script エラー:', error);
       
       // より詳細なエラー情報を提供
       if (error instanceof Error) {
         if (error.message.includes('403')) {
-          throw new Error('APIキーが無効です。Google Cloud ConsoleでAPIキーを確認してください。');
+          throw new Error('アクセスが拒否されました。Google Apps Scriptの設定を確認してください。');
         } else if (error.message.includes('404')) {
-          throw new Error('スプレッドシートが見つかりません。スプレッドシートIDを確認してください。');
+          throw new Error('Google Apps Scriptが見つかりません。URLを確認してください。');
         } else if (error.message.includes('400')) {
           throw new Error('リクエストが無効です。データ形式を確認してください。');
         } else if (error.message.includes('401')) {
-          throw new Error('認証エラーです。APIキーとGoogle Sheets APIの設定を確認してください。');
+          throw new Error('認証エラーです。Google Apps Scriptの設定を確認してください。');
         }
       }
       
@@ -156,10 +155,9 @@ export class SpreadsheetService {
    * 設定の検証
    */
   public validateConfig(): boolean {
-    const isValid = !!(this.spreadsheetId && this.apiKey);
+    const isValid = !!this.appsScriptUrl;
     console.log('設定検証結果:', {
-      hasSpreadsheetId: !!this.spreadsheetId,
-      hasApiKey: !!this.apiKey,
+      hasAppsScriptUrl: !!this.appsScriptUrl,
       isValid
     });
     return isValid;
@@ -168,10 +166,9 @@ export class SpreadsheetService {
   /**
    * 設定情報を取得（デバッグ用）
    */
-  public getConfigInfo(): { hasSpreadsheetId: boolean; hasApiKey: boolean } {
+  public getConfigInfo(): { hasAppsScriptUrl: boolean } {
     return {
-      hasSpreadsheetId: !!this.spreadsheetId,
-      hasApiKey: !!this.apiKey,
+      hasAppsScriptUrl: !!this.appsScriptUrl,
     };
   }
 }

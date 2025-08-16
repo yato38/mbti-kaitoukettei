@@ -23,8 +23,7 @@ const ConfigStatus: React.FC = () => {
         設定状況: {isValid ? '✅ 正常' : '❌ エラー'}
       </div>
       <div style={{ fontSize: '11px' }}>
-        <div>スプレッドシートID: {configInfo.hasSpreadsheetId ? '✅' : '❌'}</div>
-        <div>APIキー: {configInfo.hasApiKey ? '✅' : '❌'}</div>
+        <div>Google Apps Script URL: {configInfo.hasAppsScriptUrl ? '✅' : '❌'}</div>
       </div>
       {!isValid && (
         <div style={{ 
@@ -37,11 +36,11 @@ const ConfigStatus: React.FC = () => {
         }}>
           <strong>設定が必要:</strong>
           <br />
-          • Vercelの環境変数でVITE_SPREADSHEET_IDとVITE_GOOGLE_API_KEYを設定
+          • Vercelの環境変数でVITE_GOOGLE_APPS_SCRIPT_URLを設定
           <br />
-          • Google Cloud ConsoleでGoogle Sheets APIを有効化
+          • Google Apps ScriptをWeb Appとしてデプロイ
           <br />
-          • APIキーに適切な制限を設定
+          • スプレッドシートIDをGoogle Apps Scriptに設定
         </div>
       )}
     </div>
