@@ -12,9 +12,10 @@ const SPREADSHEET_ID = 'YOUR_SPREADSHEET_ID_HERE';
 function setCorsHeaders() {
   return {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Max-Age': '86400'
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Max-Age': '86400',
+    'Access-Control-Allow-Credentials': 'true'
   };
 }
 
@@ -25,7 +26,7 @@ function doPost(e) {
   try {
     // CORSヘッダーを設定
     const headers = setCorsHeaders();
-    headers['Content-Type'] = 'application/json';
+    headers['Content-Type'] = 'application/json; charset=utf-8';
 
     // リクエストデータを取得
     const requestData = JSON.parse(e.postData.contents);
@@ -63,13 +64,14 @@ function doPost(e) {
  */
 function doGet(e) {
   const headers = setCorsHeaders();
-  headers['Content-Type'] = 'application/json';
+  headers['Content-Type'] = 'application/json; charset=utf-8';
   
   const response = {
     success: true,
     message: 'Google Apps Script is running',
     timestamp: new Date().toISOString(),
-    version: '1.0.0'
+    version: '1.0.0',
+    cors: 'enabled'
   };
   
   return ContentService
@@ -82,10 +84,13 @@ function doGet(e) {
  * OPTIONSリクエストを処理（CORS用）
  */
 function doOptions(e) {
+  const headers = setCorsHeaders();
+  headers['Content-Type'] = 'text/plain; charset=utf-8';
+  
   return ContentService
-    .createTextOutput('')
+    .createTextOutput('OK')
     .setMimeType(ContentService.MimeType.TEXT)
-    .setHeaders(setCorsHeaders());
+    .setHeaders(headers);
 }
 
 /**
@@ -121,7 +126,13 @@ function appendRowToSpreadsheet(data) {
       data[9] || 0,   // personaD
       data[10] || 0,  // personaE
       data[11] || 0,  // personaF
-      data[12] || new Date().toISOString()  // completedAt
+      data[12] || 0,  // personaAPercentage
+      data[13] || 0,  // personaBPercentage
+      data[14] || 0,  // personaCPercentage
+      data[15] || 0,  // personaDPercentage
+      data[16] || 0,  // personaEPercentage
+      data[17] || 0,  // personaFPercentage
+      data[18] || new Date().toISOString()  // completedAt
     ];
 
     // 行を追加
@@ -158,6 +169,12 @@ function testAppendRow() {
     40,
     50,
     60,
+    15,  // personaAPercentage
+    25,  // personaBPercentage
+    35,  // personaCPercentage
+    45,  // personaDPercentage
+    55,  // personaEPercentage
+    65,  // personaFPercentage
     new Date().toISOString()
   ];
   

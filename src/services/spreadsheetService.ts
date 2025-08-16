@@ -16,6 +16,12 @@ interface SpreadsheetRow {
   personaD: number;
   personaE: number;
   personaF: number;
+  personaAPercentage: number; // ペルソナAのパーセンテージ
+  personaBPercentage: number; // ペルソナBのパーセンテージ
+  personaCPercentage: number; // ペルソナCのパーセンテージ
+  personaDPercentage: number; // ペルソナDのパーセンテージ
+  personaEPercentage: number; // ペルソナEのパーセンテージ
+  personaFPercentage: number; // ペルソナFのパーセンテージ
   completedAt: string;
 }
 
@@ -75,6 +81,12 @@ export class SpreadsheetService {
       personaD: result.personaScores.D || 0,
       personaE: result.personaScores.E || 0,
       personaF: result.personaScores.F || 0,
+      personaAPercentage: result.personaPercentages.A || 0,
+      personaBPercentage: result.personaPercentages.B || 0,
+      personaCPercentage: result.personaPercentages.C || 0,
+      personaDPercentage: result.personaPercentages.D || 0,
+      personaEPercentage: result.personaPercentages.E || 0,
+      personaFPercentage: result.personaPercentages.F || 0,
       completedAt: result.completedAt,
     };
   }
@@ -97,6 +109,12 @@ export class SpreadsheetService {
         rowData.personaD,
         rowData.personaE,
         rowData.personaF,
+        rowData.personaAPercentage,
+        rowData.personaBPercentage,
+        rowData.personaCPercentage,
+        rowData.personaDPercentage,
+        rowData.personaEPercentage,
+        rowData.personaFPercentage,
         rowData.completedAt,
       ];
 
@@ -110,6 +128,7 @@ export class SpreadsheetService {
           headers: {
             'Content-Type': 'application/json',
           },
+          mode: 'cors',
         });
         
         if (healthCheck.ok) {
@@ -127,6 +146,7 @@ export class SpreadsheetService {
         headers: {
           'Content-Type': 'application/json',
         },
+        mode: 'cors',
         body: JSON.stringify({
           action: 'appendRow',
           data: values,
@@ -162,7 +182,7 @@ export class SpreadsheetService {
       // より詳細なエラー情報を提供
       if (error instanceof Error) {
         if (error.message.includes('CORS')) {
-          throw new Error('CORSエラーが発生しました。\n\n解決方法：\n1. Google Apps Scriptを再デプロイ\n2. Web Appの設定で「アクセスできるユーザー」を「全員」に設定\n3. ブラウザのキャッシュをクリア');
+          throw new Error('CORSエラーが発生しました。\n\n解決方法：\n1. Google Apps Scriptを再デプロイ\n2. Web Appの設定で「アクセスできるユーザー」を「全員」に設定\n3. ブラウザのキャッシュをクリア\n4. Google Apps ScriptのURLが正しいことを確認');
         } else if (error.message.includes('403')) {
           throw new Error('アクセスが拒否されました。Google Apps Scriptの設定を確認してください。');
         } else if (error.message.includes('404')) {
@@ -172,7 +192,7 @@ export class SpreadsheetService {
         } else if (error.message.includes('401')) {
           throw new Error('認証エラーです。Google Apps Scriptの設定を確認してください。');
         } else if (error.message.includes('Failed to fetch')) {
-          throw new Error('ネットワークエラーが発生しました。\n\n考えられる原因：\n1. Google Apps Script URLが間違っている\n2. インターネット接続の問題\n3. Google Apps Scriptが停止している');
+          throw new Error('ネットワークエラーが発生しました。\n\n考えられる原因：\n1. Google Apps Script URLが間違っている\n2. インターネット接続の問題\n3. Google Apps Scriptが停止している\n4. CORS設定の問題');
         }
       }
       

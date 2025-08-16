@@ -29,6 +29,7 @@ export interface UserInfo {
 export interface DiagnosisResult {
   userInfo: UserInfo;
   personaScores: { [key: string]: number };
+  personaPercentages: { [key: string]: number }; // 各ペルソナのパーセンテージ
   leaderPercentage: number;
   playerPercentage: number;
   answers: number[];

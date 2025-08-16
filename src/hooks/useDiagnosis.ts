@@ -105,20 +105,43 @@ export const useDiagnosis = () => {
       }));
   }, [state.personaScores]);
 
+  /**
+   * 各ペルソナのパーセンテージを計算
+   */
+  const getPersonaPercentages = useCallback(() => {
+    const totalScore = Object.values(state.personaScores).reduce((sum, score) => sum + Math.abs(score as number), 0);
+    
+    if (totalScore === 0) {
+      // スコアが0の場合は均等に分配
+      const equalPercentage = Math.round(100 / Object.keys(state.personaScores).length);
+      return Object.keys(state.personaScores).reduce((acc, key) => ({
+        ...acc,
+        [key]: equalPercentage,
+      }), {});
+    }
+    
+    return Object.entries(state.personaScores).reduce((acc, [key, score]) => ({
+      ...acc,
+      [key]: Math.round((Math.abs(score as number) / totalScore) * 100),
+    }), {});
+  }, [state.personaScores]);
+
   const getDiagnosisResult = useCallback((): DiagnosisResult | null => {
     if (!userInfo || !state.isComplete) return null;
 
     const { leader, player } = getLeaderPlayerPercentages();
+    const personaPercentages = getPersonaPercentages();
     
     return {
       userInfo,
       personaScores: state.personaScores,
+      personaPercentages, // パーセンテージを追加
       leaderPercentage: leader,
       playerPercentage: player,
       answers: state.answers,
       completedAt: new Date().toISOString(),
     };
-  }, [userInfo, state, getLeaderPlayerPercentages]);
+  }, [userInfo, state, getLeaderPlayerPercentages, getPersonaPercentages]);
 
   const exportToSpreadsheet = useCallback(async (result: DiagnosisResult) => {
     try {
