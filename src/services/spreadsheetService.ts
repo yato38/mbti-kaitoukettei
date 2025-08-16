@@ -103,6 +103,25 @@ export class SpreadsheetService {
       console.log('Google Apps Script URL:', this.appsScriptUrl);
       console.log('送信データ:', values);
 
+      // まずヘルスチェックを実行
+      try {
+        const healthCheck = await fetch(this.appsScriptUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (healthCheck.ok) {
+          const healthData = await healthCheck.json();
+          console.log('ヘルスチェック成功:', healthData);
+        } else {
+          console.warn('ヘルスチェック失敗:', healthCheck.status, healthCheck.statusText);
+        }
+      } catch (healthError) {
+        console.warn('ヘルスチェックエラー:', healthError);
+      }
+
       const response = await fetch(this.appsScriptUrl, {
         method: 'POST',
         headers: {
@@ -120,6 +139,12 @@ export class SpreadsheetService {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error response:', errorText);
+        
+        // CORSエラーの詳細な診断
+        if (response.status === 0 || response.type === 'opaque') {
+          throw new Error('CORSエラーが発生しました。Google Apps Scriptの設定を確認してください。');
+        }
+        
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
@@ -136,7 +161,9 @@ export class SpreadsheetService {
       
       // より詳細なエラー情報を提供
       if (error instanceof Error) {
-        if (error.message.includes('403')) {
+        if (error.message.includes('CORS')) {
+          throw new Error('CORSエラーが発生しました。\n\n解決方法：\n1. Google Apps Scriptを再デプロイ\n2. Web Appの設定で「アクセスできるユーザー」を「全員」に設定\n3. ブラウザのキャッシュをクリア');
+        } else if (error.message.includes('403')) {
           throw new Error('アクセスが拒否されました。Google Apps Scriptの設定を確認してください。');
         } else if (error.message.includes('404')) {
           throw new Error('Google Apps Scriptが見つかりません。URLを確認してください。');
@@ -144,6 +171,8 @@ export class SpreadsheetService {
           throw new Error('リクエストが無効です。データ形式を確認してください。');
         } else if (error.message.includes('401')) {
           throw new Error('認証エラーです。Google Apps Scriptの設定を確認してください。');
+        } else if (error.message.includes('Failed to fetch')) {
+          throw new Error('ネットワークエラーが発生しました。\n\n考えられる原因：\n1. Google Apps Script URLが間違っている\n2. インターネット接続の問題\n3. Google Apps Scriptが停止している');
         }
       }
       
@@ -158,6 +187,7 @@ export class SpreadsheetService {
     const isValid = !!this.appsScriptUrl;
     console.log('設定検証結果:', {
       hasAppsScriptUrl: !!this.appsScriptUrl,
+      appsScriptUrl: this.appsScriptUrl,
       isValid
     });
     return isValid;
@@ -166,10 +196,34 @@ export class SpreadsheetService {
   /**
    * 設定情報を取得（デバッグ用）
    */
-  public getConfigInfo(): { hasAppsScriptUrl: boolean } {
+  public getConfigInfo(): { hasAppsScriptUrl: boolean; appsScriptUrl?: string } {
     return {
       hasAppsScriptUrl: !!this.appsScriptUrl,
+      appsScriptUrl: this.appsScriptUrl || undefined,
     };
+  }
+
+  /**
+   * ヘルスチェック
+   */
+  public async healthCheck(): Promise<boolean> {
+    try {
+      if (!this.appsScriptUrl) {
+        return false;
+      }
+
+      const response = await fetch(this.appsScriptUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      return response.ok;
+    } catch (error) {
+      console.error('ヘルスチェックエラー:', error);
+      return false;
+    }
   }
 }
 
