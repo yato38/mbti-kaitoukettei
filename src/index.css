@@ -50,6 +50,33 @@ body {
   color: white;
 }
 
+.btn-secondary {
+  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  border: none;
+  padding: 16px 40px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 18px;
+  transition: all 0.3s ease;
+  transform: scale(1);
+  color: white;
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+}
+
+.btn-secondary:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+  color: white;
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: scale(1);
+  box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2);
+}
+
 /* 診断開始ボタン専用スタイル - Bootstrap上書き */
 button.btn-start-diagnosis,
 .btn-start-diagnosis {

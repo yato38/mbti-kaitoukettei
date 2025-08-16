@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { DiagnosisState, ScreenType, UserInfo, DiagnosisResult } from '../types';
 import { QUESTIONS, PERSONAS } from '../data';
-import { spreadsheetService } from '../services/spreadsheetService';
 
 const initialState: DiagnosisState = {
   currentQuestionIndex: 0,
@@ -143,64 +142,7 @@ export const useDiagnosis = () => {
     };
   }, [userInfo, state, getLeaderPlayerPercentages, getPersonaPercentages]);
 
-  const exportToSpreadsheet = useCallback(async (result: DiagnosisResult) => {
-    try {
-      // 設定の検証
-      if (!spreadsheetService.validateConfig()) {
-        console.warn('スプレッドシート設定が不完全です。ローカルストレージに保存します。');
-        
-        // フォールバック：ローカルストレージに保存
-        const spreadsheetData = {
-          id: result.userInfo.id,
-          name: result.userInfo.name,
-          team: result.userInfo.team,
-          leaderPercentage: result.leaderPercentage,
-          playerPercentage: result.playerPercentage,
-          ...Object.entries(result.personaScores).reduce((acc, [key, score]) => ({
-            ...acc,
-            [key]: score,
-          }), {}),
-          completedAt: result.completedAt,
-        };
-        
-        const existingData = JSON.parse(localStorage.getItem('diagnosisResults') || '[]');
-        existingData.push(spreadsheetData);
-        localStorage.setItem('diagnosisResults', JSON.stringify(existingData));
-        
-        alert('診断結果がローカルに保存されました。\n\nスプレッドシートへの送信には以下が必要です：\n• Vercelの環境変数設定（VITE_GOOGLE_APPS_SCRIPT_URL）\n• Google Apps Script Web Appの作成\n• スプレッドシートの権限設定\n\n詳細はGOOGLE_APPS_SCRIPT_SETUP.mdを参照してください。');
-        return;
-      }
 
-      // スプレッドシートに送信
-      const success = await spreadsheetService.sendResult(result);
-      
-      if (success) {
-        alert('診断結果がスプレッドシートに正常に送信されました。');
-      } else {
-        throw new Error('スプレッドシートへの送信に失敗しました');
-      }
-      
-    } catch (error) {
-      console.error('Failed to export to spreadsheet:', error);
-      
-      // より具体的なエラーメッセージを表示
-      let errorMessage = '診断結果の保存に失敗しました。';
-      
-      if (error instanceof Error) {
-        if (error.message.includes('CORS')) {
-          errorMessage = 'CORSエラーが発生しました。\n\n解決方法：\n• Google Apps ScriptのCORS設定を確認\n• Web Appのデプロイ設定を確認';
-        } else if (error.message.includes('404')) {
-          errorMessage = 'Google Apps Scriptが見つかりません。\n\n解決方法：\n• Web App URLが正しいか確認\n• デプロイが正常に完了しているか確認';
-        } else if (error.message.includes('400')) {
-          errorMessage = 'リクエストが無効です。\n\n解決方法：\n• データ形式が正しいか確認\n• Google Apps Scriptのコードを確認';
-        } else {
-          errorMessage += `\n\nエラー詳細: ${error.message}`;
-        }
-      }
-      
-      alert(errorMessage + '\n\n詳細なログはブラウザの開発者ツール（F12）のコンソールで確認できます。');
-    }
-  }, []);
 
   return {
     state,
@@ -214,6 +156,5 @@ export const useDiagnosis = () => {
     getLeaderPlayerPercentages,
     getTopPersonas,
     getDiagnosisResult,
-    exportToSpreadsheet,
   };
 };

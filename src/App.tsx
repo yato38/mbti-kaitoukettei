@@ -16,16 +16,7 @@ function App() {
     getCurrentQuestion,
     getProgressPercentage,
     getLeaderPlayerPercentages,
-    getDiagnosisResult,
-    exportToSpreadsheet,
   } = useDiagnosis();
-
-  const handleExport = async () => {
-    const result = getDiagnosisResult();
-    if (result) {
-      await exportToSpreadsheet(result);
-    }
-  };
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -60,7 +51,6 @@ function App() {
             leaderPercentage={leader}
             playerPercentage={player}
             onRestart={restartDiagnosis}
-            onExport={handleExport}
           />
         );
       
