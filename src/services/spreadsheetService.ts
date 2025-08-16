@@ -107,6 +107,9 @@ export class SpreadsheetService {
 
       const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/A:append?valueInputOption=RAW&key=${this.apiKey}`;
       
+      console.log('Google Sheets API URL:', url.replace(this.apiKey, '***HIDDEN***'));
+      console.log('送信データ:', values);
+
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -117,14 +120,34 @@ export class SpreadsheetService {
         }),
       });
 
+      console.log('API Response status:', response.status);
+      console.log('API Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('API Success response:', data);
       return data.updates && data.updates.updatedRows > 0;
     } catch (error) {
       console.error('Google Sheets API エラー:', error);
+      
+      // より詳細なエラー情報を提供
+      if (error instanceof Error) {
+        if (error.message.includes('CORS')) {
+          throw new Error('CORSエラーが発生しました。APIキーの設定を確認してください。');
+        } else if (error.message.includes('403')) {
+          throw new Error('APIキーが無効です。Google Cloud ConsoleでAPIキーを確認してください。');
+        } else if (error.message.includes('404')) {
+          throw new Error('スプレッドシートが見つかりません。スプレッドシートIDを確認してください。');
+        } else if (error.message.includes('400')) {
+          throw new Error('リクエストが無効です。スプレッドシートの設定を確認してください。');
+        }
+      }
+      
       return false;
     }
   }
@@ -133,7 +156,13 @@ export class SpreadsheetService {
    * 設定の検証
    */
   public validateConfig(): boolean {
-    return !!(this.spreadsheetId && this.apiKey);
+    const isValid = !!(this.spreadsheetId && this.apiKey);
+    console.log('設定検証結果:', {
+      hasSpreadsheetId: !!this.spreadsheetId,
+      hasApiKey: !!this.apiKey,
+      isValid
+    });
+    return isValid;
   }
 
   /**

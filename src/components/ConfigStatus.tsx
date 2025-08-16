@@ -1,45 +1,51 @@
 import React from 'react';
 import { spreadsheetService } from '../services/spreadsheetService';
 
-export const ConfigStatus: React.FC = () => {
+const ConfigStatus: React.FC = () => {
   const configInfo = spreadsheetService.getConfigInfo();
   const isValid = spreadsheetService.validateConfig();
 
   return (
-    <div className="config-status bg-green-900/30 p-4 rounded-lg border border-green-700/50 backdrop-blur-sm">
-      <h3 className="text-lg font-bold mb-3 text-green-300">スプレッドシート設定状況</h3>
-      
-      <div className="space-y-2 text-sm">
-        <div className="flex items-center justify-between">
-          <span className="text-green-200">スプレッドシートID:</span>
-          <span className={`font-mono ${configInfo.hasSpreadsheetId ? 'text-green-400' : 'text-red-400'}`}>
-            {configInfo.hasSpreadsheetId ? '設定済み' : '未設定'}
-          </span>
-        </div>
-        
-        <div className="flex items-center justify-between">
-          <span className="text-green-200">Google APIキー:</span>
-          <span className={`font-mono ${configInfo.hasApiKey ? 'text-green-400' : 'text-red-400'}`}>
-            {configInfo.hasApiKey ? '設定済み' : '未設定'}
-          </span>
-        </div>
-        
-        <div className="flex items-center justify-between pt-2 border-t border-green-700/30">
-          <span className="text-green-200 font-semibold">全体状態:</span>
-          <span className={`font-bold ${isValid ? 'text-green-400' : 'text-red-400'}`}>
-            {isValid ? '準備完了' : '設定が必要'}
-          </span>
-        </div>
+    <div style={{
+      position: 'fixed',
+      top: '10px',
+      right: '10px',
+      background: isValid ? '#d4edda' : '#f8d7da',
+      border: `1px solid ${isValid ? '#c3e6cb' : '#f5c6cb'}`,
+      borderRadius: '4px',
+      padding: '8px 12px',
+      fontSize: '12px',
+      zIndex: 1000,
+      maxWidth: '300px',
+      wordBreak: 'break-word'
+    }}>
+      <div style={{ fontWeight: 'bold', marginBottom: '4px' }}>
+        設定状況: {isValid ? '✅ 正常' : '❌ エラー'}
       </div>
-      
+      <div style={{ fontSize: '11px' }}>
+        <div>スプレッドシートID: {configInfo.hasSpreadsheetId ? '✅' : '❌'}</div>
+        <div>APIキー: {configInfo.hasApiKey ? '✅' : '❌'}</div>
+      </div>
       {!isValid && (
-        <div className="mt-4 p-3 bg-yellow-900/30 border border-yellow-700/50 rounded-lg">
-          <p className="text-yellow-200 text-sm">
-            <strong>設定が必要:</strong> スプレッドシートへの送信を有効にするには、
-            環境変数ファイル（.env）にスプレッドシートIDとGoogle APIキーを設定してください。
-          </p>
+        <div style={{ 
+          marginTop: '8px', 
+          fontSize: '10px', 
+          color: '#721c24',
+          background: '#f8d7da',
+          padding: '4px',
+          borderRadius: '2px'
+        }}>
+          <strong>設定が必要:</strong>
+          <br />
+          • Vercelの環境変数でVITE_SPREADSHEET_IDとVITE_GOOGLE_API_KEYを設定
+          <br />
+          • Google Cloud ConsoleでGoogle Sheets APIを有効化
+          <br />
+          • APIキーに適切な制限を設定
         </div>
       )}
     </div>
   );
 };
+
+export default ConfigStatus;

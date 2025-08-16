@@ -10,7 +10,7 @@ import {
 } from 'chart.js';
 import { PERSONAS } from '../data';
 import { UserInfo } from '../types';
-import { ConfigStatus } from './ConfigStatus';
+import ConfigStatus from './ConfigStatus';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale);
 
