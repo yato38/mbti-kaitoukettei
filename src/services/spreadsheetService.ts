@@ -1,8 +1,8 @@
 import { DiagnosisResult } from '../types';
 
-// Google Sheets APIの設定
+// Google Sheets API設定
 const SPREADSHEET_ID = import.meta.env.VITE_SPREADSHEET_ID || '';
-const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY || '';
 
 interface SpreadsheetRow {
   timestamp: string;
@@ -27,7 +27,7 @@ export class SpreadsheetService {
 
   private constructor() {
     this.spreadsheetId = SPREADSHEET_ID;
-    this.apiKey = API_KEY;
+    this.apiKey = GOOGLE_API_KEY;
   }
 
   public static getInstance(): SpreadsheetService {
@@ -105,10 +105,10 @@ export class SpreadsheetService {
         ]
       ];
 
-      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/A:append?valueInputOption=RAW&key=${this.apiKey}`;
-      
-      console.log('Google Sheets API URL:', url.replace(this.apiKey, '***HIDDEN***'));
+      console.log('スプレッドシートID:', this.spreadsheetId);
       console.log('送信データ:', values);
+
+      const url = `https://sheets.googleapis.com/v4/spreadsheets/${this.spreadsheetId}/values/Sheet1!A:M:append?valueInputOption=USER_ENTERED&key=${this.apiKey}`;
 
       const response = await fetch(url, {
         method: 'POST',
@@ -131,20 +131,20 @@ export class SpreadsheetService {
 
       const data = await response.json();
       console.log('API Success response:', data);
-      return data.updates && data.updates.updatedRows > 0;
+      return true;
     } catch (error) {
       console.error('Google Sheets API エラー:', error);
       
       // より詳細なエラー情報を提供
       if (error instanceof Error) {
-        if (error.message.includes('CORS')) {
-          throw new Error('CORSエラーが発生しました。APIキーの設定を確認してください。');
-        } else if (error.message.includes('403')) {
+        if (error.message.includes('403')) {
           throw new Error('APIキーが無効です。Google Cloud ConsoleでAPIキーを確認してください。');
         } else if (error.message.includes('404')) {
           throw new Error('スプレッドシートが見つかりません。スプレッドシートIDを確認してください。');
         } else if (error.message.includes('400')) {
-          throw new Error('リクエストが無効です。スプレッドシートの設定を確認してください。');
+          throw new Error('リクエストが無効です。データ形式を確認してください。');
+        } else if (error.message.includes('401')) {
+          throw new Error('認証エラーです。APIキーとGoogle Sheets APIの設定を確認してください。');
         }
       }
       

@@ -144,7 +144,7 @@ export const useDiagnosis = () => {
         existingData.push(spreadsheetData);
         localStorage.setItem('diagnosisResults', JSON.stringify(existingData));
         
-        alert('診断結果がローカルに保存されました。\n\nスプレッドシートへの送信には以下が必要です：\n• Vercelの環境変数設定\n• Google Sheets APIの有効化\n• 適切なAPIキー設定\n\n詳細はVERCEL_DEPLOYMENT.mdを参照してください。');
+        alert('診断結果がローカルに保存されました。\n\nスプレッドシートへの送信には以下が必要です：\n• Vercelの環境変数設定（VITE_GOOGLE_APPS_SCRIPT_URL）\n• Google Apps Script Web Appの作成\n• スプレッドシートの権限設定\n\n詳細はGOOGLE_APPS_SCRIPT_SETUP.mdを参照してください。');
         return;
       }
 
@@ -165,13 +165,11 @@ export const useDiagnosis = () => {
       
       if (error instanceof Error) {
         if (error.message.includes('CORS')) {
-          errorMessage = 'CORSエラーが発生しました。\n\n解決方法：\n• Google Cloud ConsoleでAPIキーのHTTPリファラー制限を確認\n• Vercelのドメインが許可されているか確認';
-        } else if (error.message.includes('403')) {
-          errorMessage = 'APIキーが無効です。\n\n解決方法：\n• Google Cloud ConsoleでAPIキーを確認\n• Google Sheets APIが有効化されているか確認';
+          errorMessage = 'CORSエラーが発生しました。\n\n解決方法：\n• Google Apps ScriptのCORS設定を確認\n• Web Appのデプロイ設定を確認';
         } else if (error.message.includes('404')) {
-          errorMessage = 'スプレッドシートが見つかりません。\n\n解決方法：\n• スプレッドシートIDが正しいか確認\n• スプレッドシートが存在し、アクセス可能か確認';
+          errorMessage = 'Google Apps Scriptが見つかりません。\n\n解決方法：\n• Web App URLが正しいか確認\n• デプロイが正常に完了しているか確認';
         } else if (error.message.includes('400')) {
-          errorMessage = 'リクエストが無効です。\n\n解決方法：\n• スプレッドシートの設定を確認\n• データ形式が正しいか確認';
+          errorMessage = 'リクエストが無効です。\n\n解決方法：\n• データ形式が正しいか確認\n• Google Apps Scriptのコードを確認';
         } else {
           errorMessage += `\n\nエラー詳細: ${error.message}`;
         }
